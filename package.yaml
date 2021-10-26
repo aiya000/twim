@@ -58,9 +58,13 @@ default-extensions:
 dependencies:
   - base >= 4.7 && < 5
   - bytestring
+  - directory
+  - easy-file
+  - extra
   - here
   - optparse-applicative
   - safe
+  - safe-exceptions
   - shh
 
 library:
