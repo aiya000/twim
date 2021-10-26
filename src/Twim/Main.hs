@@ -3,24 +3,37 @@
 module Twim.Main where
 
 import Safe (headMay)
-import Shh
+import Shh (exe)
 import System.Environment (getArgs)
-import Twim.Config (my_user_name)
+import Twim.Config
 import Twim.Follow (followFromUser, OperationKind (..))
 import Twim.Unfollow (unfollowNotFollowingUsers)
-import Twim.Utils (ignoreRubyWarning)
 
 defaultMain :: IO ()
-defaultMain = headMay <$> getArgs >>= \case
-  Nothing -> putStrLn "Avaliable sub commands: switch-account, unfollow, copy-follower, copy-following"
-  Just subcmd ->
-    case subcmd of
-      "switch-account" -> switchAccount
-      "unfollow" -> unfollowNotFollowingUsers
-      "copy-follower" -> followFromUser OperationKindFollower
-      "copy-following" -> followFromUser OperationKindFollower
-      unknown -> putStrLn $ "Unknown sub command: " <> unknown
+defaultMain = do
+  config <- readConfigOrInit
+  headMay <$> getArgs >>= \case
+    Nothing -> putStrLn "Avaliable sub commands: switch-account, unfollow, copy-follower, copy-following"
+    Just subcmd ->
+      case subcmd of
+        "init" -> pure ()
+        "switch-account" -> switchAccount config
+        "unfollow" ->  unfollowNotFollowingUsers config
+        "copy-follower" -> followFromUser OperationKindFollower config
+        "copy-following" -> followFromUser OperationKindFollower config
+        unknown -> putStrLn $ "Unknown sub command: " <> unknown
+  where
+    readConfigOrInit :: IO Config
+    readConfigOrInit =
+      readConfig >>= \case
+        Just config -> pure config
+        Nothing -> do
+          _ <- initConfigDir
+          readConfig >>= \case
+            Just config -> pure config
+            Nothing -> fail "Fatal error: cannot read and initialize config."
 
 
-switchAccount :: IO ()
-switchAccount = exe "t" "set" "active" my_user_name |> ignoreRubyWarning
+switchAccount :: Config -> IO ()
+switchAccount (Config { twitterUserId }) = do
+  exe "t" "set" "active" twitterUserId

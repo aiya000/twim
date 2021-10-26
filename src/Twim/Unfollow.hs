@@ -1,4 +1,6 @@
 module Twim.Unfollow where
 
-unfollowNotFollowingUsers :: IO ()
+import Twim.Config
+
+unfollowNotFollowingUsers :: Config -> IO ()
 unfollowNotFollowingUsers = undefined
