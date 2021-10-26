@@ -1,0 +1,8 @@
+resolver:
+  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/10.yaml
+
+packages:
+  - .
+
+extra-deps:
+  - shh-0.7.1.4@sha256:3cad21cec2f387aa315d9564fea13a2b141f1a461b452418aa595828030011d3,2275
