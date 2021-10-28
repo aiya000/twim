@@ -1,9 +1,7 @@
 module Twim.Follow where
 
+import Twim.CliOptions
 import Twim.Config
 
-data OperationKind = OperationKindFollower | OperationKindFollowing
-  deriving (Show)
-
-followFromUser :: OperationKind -> Config -> IO ()
+followFromUser :: CopyingTarget -> Config -> IO ()
 followFromUser = undefined

@@ -1,28 +1,36 @@
 module Twim.Config where
 
-import Control.Exception.Safe
 import Control.Monad.Extra
-import Data.String.Here (i)
-import Safe
-import System.Directory
+import System.EasyFile
+import Twim.Twitter
+import Twim.Utils
 
 data Config = Config
-  { twitterUserId :: String
+  { yourId :: TwitterUserId  -- ^ Your user id
+  , trustedUsers :: [TwitterUserId] -- ^ Users that you don't want to unfollow
   } deriving (Show, Read)
 
-configDir :: FilePath
-configDir = "~/.config/twim"
+getConfigDirPath :: IO FilePath
+getConfigDirPath = getHomeDirectory >>= pure . (<> "/.config/twim")
 
-configFile :: FilePath
-configFile = [i|${configDir :: String}/config|]
+getConfigFilePath :: IO FilePath
+getConfigFilePath = getConfigDirPath >>= pure . (<> "/config")
 
--- | Initializes ~/.config/twim and config files under the directory.
+-- |
+-- Initializes ~/.config/twim and config files under the directory.
+--
+-- This asks your twitter id if this app has never initialized.
 initConfigDir :: IO ()
-initConfigDir =
-  whenM (not <$> doesDirectoryExist configDir)
-    do createDirectory configDir
+initConfigDir = do
+  getConfigDirPath >>= createDirectoryIfMissing True
+  putStr "Your twitter id: "
+  yourId <- getLine
+  let config = show $ Config yourId []
+  getConfigFilePath >>= flip writeFile config
 
 readConfig :: IO (Maybe Config)
 readConfig = do
-  config <- readFile configFile `catch` \e -> fail $ show (e :: SomeException)
-  pure $ readMay @Config config
+  configPath <- getConfigFilePath
+  ifM (not <$> doesDirectoryExist configPath)
+    do pure Nothing
+    do readFileMay @Config configPath
