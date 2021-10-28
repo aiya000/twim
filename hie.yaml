@@ -1,0 +1,16 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "twim:lib"
+
+    - path: "./app/Main.hs"
+      component: "twim:exe:twim"
+
+    - path: "./app/Paths_twim.hs"
+      component: "twim:exe:twim"
+
+    - path: "./test/tasty"
+      component: "twim:test:tasty"
+
+    - path: "./src"
+      component: "twim:test:tasty"
