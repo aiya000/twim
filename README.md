@@ -1,6 +1,6 @@
 # Twim
 
-Twim is a management system for your twitter accounts.
+Twim is a management system to follow/unfollow users smartly.
 
 **Currently WIP.**
 
@@ -22,6 +22,20 @@ $ t authorize
 ```
 
 - ruby 2.7 (recommend: rbenv)
+
+- Please also see [Configurations](#Configurations) section
+
+## Configurations
+
+You must run `$ twim init-config` before use this app.
+
+This generates `~/.config/twim/config`.
+
+### ~/.config/twim/config
+
+```
+TODO
+```
 
 ## Usage
 
