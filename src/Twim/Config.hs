@@ -20,8 +20,8 @@ getConfigFilePath = getConfigDirPath >>= pure . (<> "/config")
 -- Initializes ~/.config/twim and config files under the directory.
 --
 -- This asks your twitter id if this app has never initialized.
-initConfigDir :: IO ()
-initConfigDir = do
+initConfig :: IO ()
+initConfig = do
   getConfigDirPath >>= createDirectoryIfMissing True
   putStr "Your twitter id: "
   yourId <- getLine

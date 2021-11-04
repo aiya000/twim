@@ -2,34 +2,56 @@
 
 module Twim.Main where
 
-import Safe (headMay)
-import Shh (exe)
-import System.Environment (getArgs)
+import Control.Monad.Extra (whenM)
+import Data.Maybe (isJust)
+import Data.String.Here (i)
+import Twim.CliOptions
 import Twim.Config
-import Twim.Unfollow (unfollowNotFollowingUsers)
+import Twim.Follow
+import Twim.Unfollow
 
 defaultMain :: IO ()
-defaultMain = do
-  readConfig >>= \case
-    Nothing -> fail noSuchConfigError
-    Just conf -> exec conf
+defaultMain =
+  parseCliOptions >>= \case
+    InitConfig -> readConfig >>= initConfig' . isJust
+    Unfollow -> readConfigForcely >>= unfollow
+    Follow target -> readConfigForcely >>= follow target
   where
+    initConfig' :: Bool -> IO ()
+    initConfig' configIsExistent = do
+      if configIsExistent
+        then initConfigIfAgree
+        else initConfig
+
+    initConfigIfAgree :: IO ()
+    initConfigIfAgree =
+      whenM confirm initConfig
+
+    confirm = do
+      putStrLn =<< getConfirmation
+      getLine >>= \case
+        "" -> confirm
+        ans -> if
+          | ans `elem` yes -> pure True
+          | ans `elem` no -> pure False
+          | otherwise -> do
+            putStrLn [i|At here, you can input just {yes} or {no}.|]
+            confirm
+
+    getConfirmation = do
+      path <- getConfigFilePath
+      pure $
+        (path <> " is already existent.\n") <>
+        "Do you really initialize this? (y/n)"
+
+    yes = ["y", "Y", "yes", "Yes"]
+    no = ["n", "N", "no", "No"]
+
+    readConfigForcely =
+      readConfig >>= \case
+        Nothing -> fail noSuchConfigError
+        Just conf -> pure conf
+
     noSuchConfigError =
       "No such config file.\n" <>
       "Please run `$ twim init-config` before run this app."
-
-    exec :: Config -> IO ()
-    exec config = do
-      switchAccount config
-      headMay <$> getArgs >>= \case
-        Nothing -> putStrLn "Avaliable sub commands: switch-account, unfollow, copy-follower, copy-following"
-        Just subcmd ->
-          case subcmd of
-            "unfollow" ->  unfollowNotFollowingUsers config
-            "follow" -> undefined
-            unknown -> putStrLn $ "Unknown sub command: " <> unknown
-
-
-switchAccount :: Config -> IO ()
-switchAccount (Config { yourId }) =
-  exe "t" "set" "active" yourId

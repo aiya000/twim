@@ -14,12 +14,16 @@ data CopyingTarget
   | FollowingOf TwitterUserId -- ^ To follow users that the specified user follows
   deriving (Show)
 
-twim :: Parser CliOptions
+parseCliOptions :: IO CliOptions
+parseCliOptions = execParser twim
+
+twim :: ParserInfo CliOptions
 twim =
-  subparser $
-    initConfig <>
-    unfollow <>
-    follow
+  flip info (progDesc "A management system to follow/unfollow users smartly.") .
+    subparser $
+      initConfig <>
+      unfollow <>
+      follow
   where
     initConfig =
       command "init-config" .
