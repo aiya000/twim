@@ -23,11 +23,17 @@ defaultMain = do
     initConfig' configIsExistent = do
       if configIsExistent
         then initConfigIfAgree
-        else initConfig
+        else initConfig''
 
     initConfigIfAgree :: IO ()
     initConfigIfAgree =
-      whenM confirm initConfig
+      whenM confirm initConfig''
+
+    initConfig'' = do
+      initConfig
+      configPath <- getConfigFilePath
+      putStrLn $ "Your config is initialized: " <> configPath
+      putStrLn "Done."
 
     confirm = do
       putStrLn =<< getConfirmation
