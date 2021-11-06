@@ -5,13 +5,15 @@ module Twim.Main where
 import Control.Monad.Extra (whenM)
 import Data.Maybe (isJust)
 import Data.String.Here (i)
+import System.IO (hSetBuffering, stdout, BufferMode (..))
 import Twim.CliOptions
 import Twim.Config
 import Twim.Follow
 import Twim.Unfollow
 
 defaultMain :: IO ()
-defaultMain =
+defaultMain = do
+  hSetBuffering stdout NoBuffering
   parseCliOptions >>= \case
     InitConfig -> readConfig >>= initConfig' . isJust
     Unfollow -> readConfigForcely >>= unfollow
