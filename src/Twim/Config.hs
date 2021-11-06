@@ -31,6 +31,6 @@ initConfig = do
 readConfig :: IO (Maybe Config)
 readConfig = do
   configPath <- getConfigFilePath
-  ifM (not <$> doesDirectoryExist configPath)
-    do pure Nothing
+  ifM (doesFileExist configPath)
     do readFileMay @Config configPath
+    do pure Nothing
