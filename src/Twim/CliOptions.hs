@@ -1,12 +1,13 @@
 module Twim.CliOptions where
 
 import Options.Applicative
+import Options.Applicative.Help.Pretty (text, vsep)
 import Twim.Twitter
 
 data CliOptions
   = InitConfig
-  | Unfollow
   | Follow CopyingTarget
+  | Unfollow
   deriving (Show)
 
 data CopyingTarget
@@ -19,38 +20,51 @@ parseCliOptions = execParser twim
 
 twim :: ParserInfo CliOptions
 twim =
-  flip info (progDesc "A management system to follow/unfollow users smartly.") .
-    subparser $
+  flip info twimDesc .
+    hsubparser $
       initConfig <>
-      unfollow <>
-      follow
+      follow <>
+      unfollow
   where
+    -- NOTE: Why optparse-applicative doesn't show sub commands automatically for --help?
+    twimDesc =
+      progDescDoc . Just $ vsep
+        [ text "A management system to follow/unfollow users smartly."
+        , text "commands:"
+        , text "  - init-config"
+        , text "  - follow"
+        , text "  - unfollow"
+        ]
+
     initConfig =
       command "init-config" .
-        info (pure InitConfig) $
-        progDesc (
-          "Initializing this app's config directory and the config file:\n" <>
-          "   - ~/.config/twim\n" <>
-          "   - ~/.config/twim/config"
-        )
+        info (pure InitConfig) .
+          progDescDoc . Just $ vsep
+            [ text "Initializing this app's config directory and the config file:"
+            , text "  - ~/.config/twim"
+            , text "  - ~/.config/twim/config"
+            ]
+
+    follow =
+      command "follow" .
+        info followParser .
+        progDescDoc . Just $ vsep
+          [ text "Following users that is another user's follower or followee:"
+          , text "  - But Twim avoids following the users twice or more"
+          , text "  - Meaning Twim follows the users only once"
+          ]
 
     unfollow =
       command "unfollow" .
         info (pure Unfollow) $
         progDesc (
-          "Unfollowing users that is not following you:\n" <>
-          "   - But never unfollowing users that is specified by you."
+          "Unfollowing users that is not following you" <>
+          "but never unfollowing users that is specified by you."
         )
 
-    follow =
-      command "follow" .
-        info parserForFollow $
-        progDesc (
-          "Following users that is another user's follower or followee:\n" <>
-          "   - But Twim avoids following the users twice or more\n" <>
-          "   - Meaning Twim follows the users only once"
-        )
-
-parserForFollow :: Parser CliOptions
-parserForFollow =
-  Follow <$> undefined
+followParser :: Parser CliOptions
+followParser =
+  Follow <$> (
+    FollowerOf <$> strArgument (metavar "follower") <|>
+    FollowingOf <$> strArgument (metavar "following")
+  )
