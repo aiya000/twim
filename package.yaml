@@ -9,7 +9,6 @@ ghc-options:
   - -Wcompat
   - -Wincomplete-record-updates
   - -Wincomplete-uni-patterns
-  - -Wredundant-constraints
   - -fprint-explicit-kinds
   - -fprint-potential-instances
 
@@ -25,6 +24,8 @@ default-extensions:
   - DeriveFunctor
   - DeriveGeneric
   - DeriveTraversable
+  - DerivingStrategies
+  - DerivingVia
   - DoAndIfThenElse
   - DuplicateRecordFields
   - EmptyDataDecls
