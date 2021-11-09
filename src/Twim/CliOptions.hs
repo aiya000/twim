@@ -8,12 +8,12 @@ data CliOptions
   = InitConfig
   | Follow CopyingTarget
   | Unfollow
-  deriving (Show)
+  deriving (Show, Eq)
 
 data CopyingTarget
   = FollowerOf TwitterUserId -- ^ To follow the specified user's follower
   | FollowingOf TwitterUserId -- ^ To follow users that the specified user follows
-  deriving (Show)
+  deriving (Show, Eq)
 
 parseCliOptions :: IO CliOptions
 parseCliOptions = execParser twim
