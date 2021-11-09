@@ -6,7 +6,7 @@ import Twim.Twitter
 import Twim.Utils
 
 data Config = Config
-  { yourId :: TwitterUserId  -- ^ Your user id
+  { mine :: TwitterUserId  -- ^ Your (My) user id
   , trustedUsers :: [TwitterUserId] -- ^ Users that you don't want to unfollow
   } deriving (Show, Read, Eq)
 

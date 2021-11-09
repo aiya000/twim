@@ -66,5 +66,6 @@ defaultMain = do
         Just env -> pure env
 
     noSuchConfigError =
+      "Fatal error!\n" <>
       "No such config file.\n" <>
       "Please run `$ twim init-config` before run this app."
