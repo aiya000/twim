@@ -63,6 +63,7 @@ dependencies:
   - easy-file
   - extra
   - here
+  - mtl
   - optparse-applicative
   - safe
   - safe-exceptions
