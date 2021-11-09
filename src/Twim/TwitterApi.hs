@@ -10,13 +10,20 @@ import Twim.Config
 import Twim.Twitter
 
 -- | To inject below instance types into contexts.
-class Monad m => TwitterApi m where
-  followUser :: TwitterUserId -> m ()
-  unfollowUser :: TwitterUserId -> m ()
-  doesFollowMe :: TwitterUserId -> m Bool
+class MonadReader TwimEnv m => TwitterApi m where
+  followUser :: TwitterUserId -> m () -- ^ Does follow the user
+  unfollowUser :: TwitterUserId -> m () -- ^ Does unfollow the user
+  isFollowingMe :: TwitterUserId -> m Bool -- ^ Is the user following me?
+  fetchFollowersOf :: TwitterUserId -> m [TwitterUserId]
+  fetchFollowingsOf :: TwitterUserId -> m [TwitterUserId]
   -- vvv helpers
   putLog :: String -> m ()
   printLog :: Show a => a -> m ()
+  -- vvv defaults
+  isTruestedUser :: TwitterUserId -> m Bool
+  isTruestedUser user = do
+    Config {..} <- asks envConfig
+    pure $ user `elem` trustedUsers
 
 data TwimEnv = TwimEnv
   { envConfig :: Config
@@ -28,23 +35,30 @@ newtype ViaNetwork a = ViaNetwork
   { unViaNetwork :: ReaderT TwimEnv IO a
   }
   deriving (Functor, Applicative, Monad)
-  deriving newtype (MonadIO)
-
-runViaNetwork :: TwimEnv -> ViaNetwork a -> IO a
-runViaNetwork env = flip runReaderT env . unViaNetwork
+  deriving newtype (MonadReader TwimEnv, MonadIO)
 
 instance TwitterApi ViaNetwork where
   followUser = undefined
   unfollowUser = undefined
-  doesFollowMe = undefined
+  isFollowingMe = undefined
+  fetchFollowersOf = undefined
+  fetchFollowingsOf = undefined
   putLog = liftIO . putStrLn
   printLog = liftIO . print
 
+runViaNetwork :: TwimEnv -> ViaNetwork a -> IO a
+runViaNetwork env = flip runReaderT env . unViaNetwork
+
 type Log = String
+
+data TwitterAccount = TwitterAccount
+  { follower :: [TwitterUserId] -- ^ Users that is following me
+  , following :: [TwitterUserId] -- ^ Users that I'm following
+  } deriving (Show, Eq)
 
 -- | For tests.
 newtype ViaMock a = ViaMock
-  { runViaMock :: ReaderT TwimEnv (Writer Log) a
+  { unViaMock :: ReaderT TwimEnv (Writer Log) a
   }
   deriving (Functor, Applicative, Monad)
   deriving newtype (MonadReader TwimEnv, MonadWriter Log)
@@ -52,6 +66,11 @@ newtype ViaMock a = ViaMock
 instance TwitterApi ViaMock where
   followUser = undefined
   unfollowUser = undefined
-  doesFollowMe = undefined
+  isFollowingMe = undefined
+  fetchFollowersOf = undefined
+  fetchFollowingsOf = undefined
   putLog = tell
   printLog = putLog . show
+
+runViaMock :: TwimEnv -> ViaMock a -> (a, Log)
+runViaMock env = runWriter . flip runReaderT env . unViaMock
