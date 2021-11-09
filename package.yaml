@@ -67,6 +67,7 @@ dependencies:
   - optparse-applicative
   - safe
   - safe-exceptions
+  - twitter-conduit
 
 library:
   source-dirs: src
