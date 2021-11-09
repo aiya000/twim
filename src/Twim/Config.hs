@@ -8,7 +8,7 @@ import Twim.Utils
 data Config = Config
   { yourId :: TwitterUserId  -- ^ Your user id
   , trustedUsers :: [TwitterUserId] -- ^ Users that you don't want to unfollow
-  } deriving (Show, Read)
+  } deriving (Show, Read, Eq)
 
 getConfigDirPath :: IO FilePath
 getConfigDirPath = getHomeDirectory >>= pure . (<> "/.config/twim")

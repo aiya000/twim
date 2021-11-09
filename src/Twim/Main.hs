@@ -2,10 +2,12 @@
 
 module Twim.Main where
 
+import Control.Monad (liftM2)
 import Control.Monad.Extra (whenM)
 import Data.Maybe (isJust)
 import Data.String.Here (i)
 import System.IO (hSetBuffering, stdout, BufferMode (..))
+import Twim.Cache
 import Twim.CliOptions
 import Twim.Config
 import Twim.Follow
@@ -15,10 +17,11 @@ import Twim.Unfollow
 defaultMain :: IO ()
 defaultMain = do
   hSetBuffering stdout NoBuffering
+  initCacheIfNotExistent
   parseCliOptions >>= \case
     InitConfig -> readConfig >>= initConfig' . isJust
-    Unfollow -> readConfigForcely >>= ($ unfollow) . runViaNetwork
-    Follow target -> readConfigForcely >>= ($ follow target) . runViaNetwork
+    Unfollow -> readEnvForcely >>= ($ unfollow) . runViaNetwork
+    Follow target -> readEnvForcely >>= ($ follow target) . runViaNetwork
   where
     initConfig' :: Bool -> IO ()
     initConfig' configIsExistent = do
@@ -56,10 +59,11 @@ defaultMain = do
     yes = ["y", "Y", "yes", "Yes"]
     no = ["n", "N", "no", "No"]
 
-    readConfigForcely =
-      readConfig >>= \case
+    -- Assumes the cache file is existent.
+    readEnvForcely =
+      liftM2 TwimEnv <$> readConfig <*> readCache >>= \case
         Nothing -> fail noSuchConfigError
-        Just conf -> pure conf
+        Just env -> pure env
 
     noSuchConfigError =
       "No such config file.\n" <>

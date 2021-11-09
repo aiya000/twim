@@ -5,6 +5,7 @@ module Twim.TwitterApi where
 
 import Control.Monad.Reader
 import Control.Monad.Writer
+import Twim.Cache
 import Twim.Config
 import Twim.Twitter
 
@@ -17,15 +18,20 @@ class Monad m => TwitterApi m where
   putLog :: String -> m ()
   printLog :: Show a => a -> m ()
 
+data TwimEnv = TwimEnv
+  { envConfig :: Config
+  , envCache :: Cache
+  } deriving (Show, Eq)
+
 -- | For actual operations.
 newtype ViaNetwork a = ViaNetwork
-  { unViaNetwork :: ReaderT Config IO a
+  { unViaNetwork :: ReaderT TwimEnv IO a
   }
   deriving (Functor, Applicative, Monad)
   deriving newtype (MonadIO)
 
-runViaNetwork :: Config -> ViaNetwork a -> IO a
-runViaNetwork config = flip runReaderT config . unViaNetwork
+runViaNetwork :: TwimEnv -> ViaNetwork a -> IO a
+runViaNetwork env = flip runReaderT env . unViaNetwork
 
 instance TwitterApi ViaNetwork where
   followUser = undefined
@@ -38,10 +44,10 @@ type Log = String
 
 -- | For tests.
 newtype ViaMock a = ViaMock
-  { runViaMock :: ReaderT Config (Writer Log) a
+  { runViaMock :: ReaderT TwimEnv (Writer Log) a
   }
   deriving (Functor, Applicative, Monad)
-  deriving newtype (MonadReader Config, MonadWriter Log)
+  deriving newtype (MonadReader TwimEnv, MonadWriter Log)
 
 instance TwitterApi ViaMock where
   followUser = undefined
