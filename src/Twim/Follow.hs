@@ -1,8 +1,8 @@
 module Twim.Follow where
 
 import Twim.CliOptions
-import Twim.Config
+import Twim.TwitterApi
 
 -- | Please see this description of Twim.CliOptions.
-follow :: CopyingTarget -> Config -> IO ()
-follow = undefined
+follow :: TwitterApi t => CopyingTarget -> t ()
+follow target = printLog target

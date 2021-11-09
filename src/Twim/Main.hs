@@ -9,6 +9,7 @@ import System.IO (hSetBuffering, stdout, BufferMode (..))
 import Twim.CliOptions
 import Twim.Config
 import Twim.Follow
+import Twim.TwitterApi
 import Twim.Unfollow
 
 defaultMain :: IO ()
@@ -16,8 +17,8 @@ defaultMain = do
   hSetBuffering stdout NoBuffering
   parseCliOptions >>= \case
     InitConfig -> readConfig >>= initConfig' . isJust
-    Unfollow -> readConfigForcely >>= unfollow
-    Follow target -> readConfigForcely >>= follow target
+    Unfollow -> readConfigForcely >>= ($ unfollow) . runViaNetwork
+    Follow target -> readConfigForcely >>= ($ follow target) . runViaNetwork
   where
     initConfig' :: Bool -> IO ()
     initConfig' configIsExistent = do

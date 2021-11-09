@@ -1,7 +1,7 @@
 module Twim.Unfollow where
 
-import Twim.Config
+import Twim.TwitterApi
 
 -- | Please see this description of Twim.CliOptions.
-unfollow :: Config -> IO ()
+unfollow :: TwitterApi t => t ()
 unfollow = undefined
